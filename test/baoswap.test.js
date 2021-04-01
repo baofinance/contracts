@@ -513,12 +513,12 @@ contract("BaoSwap", accounts => {
 	});
 	it("accounts[3] withdraws all supply", async () => {
 		let balance1 = await baoSwap.balance1.call();
-		let balance2 = await baoSwap.balance2.call();;
+		let balance2 = await baoSwap.balance2.call();
 		await baoSwap.withdrawOnlyAdmin(token1.address, balance1, {from:accounts[3]});
 		await baoSwap.withdrawOnlyAdmin(token2.address, balance2, {from:accounts[3]});
-		assertBalance(token1, baoSwap.address, 0);
-		assertBalance(token2, baoSwap.address, 0);
-		assertBalance(token1, accounts[3], balance1);
-		assertBalance(token2, accounts[3], balance2);
+		await assertBalance(token1, baoSwap.address, 0);
+		await assertBalance(token2, baoSwap.address, 0);
+		await assertBalanceString(token1, accounts[3], balance1.toString());
+		await assertBalanceString(token2, accounts[3], balance2.toString());
 	});
 });
