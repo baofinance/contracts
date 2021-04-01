@@ -208,6 +208,7 @@ contract("BaoSwap", accounts => {
 	});
 	
 	it('accounts[1] deposits 100 of token1', async () => {
+		await minePendingTransactions(1);
 		await stopMining();																		//stopping mining to stop advancing blocks	
 		baoSwap.deposit(token1.address, token1Amount(100), {from: accounts[1], gas: 300000});	//deposit
 	});
