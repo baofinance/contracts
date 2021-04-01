@@ -98,7 +98,7 @@ contract BaoSwap is Ownable, Pausable {
 	    if (_fee == 0) {
 	        return amount;
 	    }
-	    return amount.sub(amount.mul(_fee).div(100));
+	    return amount.mul(100-_fee).div(100);
 	}
 	
 	function swapWithFee(address fromToken, uint256 amount) public view returns (uint256) {

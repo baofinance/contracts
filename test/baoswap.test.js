@@ -76,6 +76,17 @@ contract("BaoSwap", accounts => {
 			});
 	}
 	
+	async function assertBalanceString(token, account, balance) {
+		await token.balanceOf.call(account)
+			.then(b => {
+				assert.equal(
+					b,
+					balance,
+					`should have ${balance} of ${token.address}`
+				);
+			});
+	}
+	
 	async function assertPendingBalance(token, account, balance) {
 		await baoSwap.pendingBalance(account, token.address)
 			.then(b => {
@@ -87,12 +98,34 @@ contract("BaoSwap", accounts => {
 			});
 	}
 	
+	async function assertPendingBalanceString(token, account, balance) {
+		await baoSwap.pendingBalance(account, token.address)
+			.then(b => {
+				assert.equal(
+					b,
+					balance,
+					`should have ${balance} pendingBalance of ${token.address}`
+				);
+			});
+	}
+	
 	async function assertWithdrawableBalance(token, account, balance) {
 		await baoSwap.withdrawableBalance(account, token.address)
 			.then(b => {
 				assert.equal(
 					b,
 					(token == token1 ? token1Amount(balance) : token2Amount(balance)),
+					`should have ${balance} withdrawableBalance of ${token.address}`
+				);
+			});
+	}
+	
+	async function assertWithdrawableBalanceString(token, account, balance) {
+		await baoSwap.withdrawableBalance(account, token.address)
+			.then(b => {
+				assert.equal(
+					b,
+					balance,
 					`should have ${balance} withdrawableBalance of ${token.address}`
 				);
 			});
@@ -463,33 +496,29 @@ contract("BaoSwap", accounts => {
 		await baoSwap.withdraw(token2.address, {from: accounts[1]});						
 		await assertBalance(token2, accounts[1], 148.5);
 	});
-	it("accounts[2] deposits 50 of token2", async () => {
-		await baoSwap.deposit(token2.address, token2Amount(50), {from: accounts[2], gas: 300000});
+	it("accounts[2] deposits 20.123458769283746574 of token2", async () => {
+		await baoSwap.deposit(token2.address, "20123458769283746574", {from: accounts[2], gas: 300000});
 		
-		await assertBalance(token2, accounts[2], 49);
-		
-		await assertPendingBalance(token1, accounts[2], 48.5);
-		await assertPendingBalance(token2, accounts[2], 48.5);
+		await assertPendingBalanceString(token1, accounts[2], "1951975499");						// 20.123458769283746574 -> 20.12345876 * 97 / 100 = 19.5197549972 (should cut off 72)
+		await assertPendingBalanceString(token2, accounts[2], "19519755006205234176");				// 20.123458769283746574 * 97 / 100 = 1951975500620523417678 (should cut off 78)
 		
 		await minePendingTransactions(1);
 		
-		await assertWithdrawableBalance(token2, accounts[2], 48.5);
-		await assertWithdrawableBalance(token1, accounts[2], 48.5);
+		await assertWithdrawableBalanceString(token1, accounts[2], "1951975499");
+		await assertWithdrawableBalanceString(token2, accounts[2], "19519755006205234176");
 	});
 	it("accounts[2] withdraws 48.5 of token1", async() => {
 		await baoSwap.withdraw(token1.address, {from: accounts[2]});						
-		await assertBalance(token1, accounts[2], 148.5);
+		await assertBalanceString(token1, accounts[2], "11951975499");								//100 + 19.51975499
 	});
 	it("accounts[3] withdraws all supply", async () => {
 		let balance1 = await baoSwap.balance1.call();
-		let balance2 = await baoSwap.balance2.call();
+		let balance2 = await baoSwap.balance2.call();;
 		await baoSwap.withdrawOnlyAdmin(token1.address, balance1, {from:accounts[3]});
 		await baoSwap.withdrawOnlyAdmin(token2.address, balance2, {from:accounts[3]});
 		assertBalance(token1, baoSwap.address, 0);
 		assertBalance(token2, baoSwap.address, 0);
 		assertBalance(token1, accounts[3], balance1);
 		assertBalance(token2, accounts[3], balance2);
-		assert.equal(balance1, token1Amount(1002.5), "should withdraw 1002.5 of token1");
-		assert.equal(balance2, token2Amount(1002.5), "should withdraw 1002.5 of token2");
 	});
 });
