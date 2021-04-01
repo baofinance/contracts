@@ -244,6 +244,20 @@ contract("BaoSwap", accounts => {
 		
 		await baoSwap.canWithdraw.call(accounts[1]).then(r => assert.isTrue(r, "should be able to withdraw"));
 	});
+	it('accounts[1] fails to deposit again', async () => {
+		try {
+			await baoSwap.deposit(token1.address, token1Amount(100), {from: accounts[1], gas: 300000});
+			assert.fail("shouldn't be able to deposit again");
+		} catch (er) {
+			assert.include(er.message, "revert", "deposit should revert");
+		}
+		try {
+			await baoSwap.deposit(token2.address, token2Amount(100), {from: accounts[1], gas: 300000});
+			assert.fail("shouldn't be able to deposit again");
+		} catch (er) {
+			assert.include(er.message, "revert", "deposit should revert");
+		}
+	});
 	it("accounts[2] can't withdraw token1 or token2", async () => {								//account[2] can't withdraw someone else's deposit	
 		try {
 			await baoSwap.withdraw(token1.address, {from: accounts[2]});
@@ -268,6 +282,20 @@ contract("BaoSwap", accounts => {
 		
 		await assertWithdrawableBalance(token1, accounts[1], 0);
 		await assertWithdrawableBalance(token2, accounts[1], 0);
+	});
+	it("accounts[1] can't withdraw twice", async () => {
+		try {
+			await baoSwap.withdraw(token2.address, {from: accounts[1]});
+			assert.fail("token2 withdraw should fail");
+		} catch (er) {
+			assert.include(er.message, "revert", "token2 withdraw should revert");
+		}
+		try {
+			await baoSwap.withdraw(token1.address, {from: accounts[1]});
+			assert.fail("token1 withdraw should fail");
+		} catch (er) {
+			assert.include(er.message, "revert", "token1 withdraw should revert");
+		}		
 	});
 	it("accounts[1] deposits 100 of token2 and withdraws 100 of token1", async () => {
 		await baoSwap.deposit(token2.address, token2Amount(100), {from: accounts[1], gas: 300000});
