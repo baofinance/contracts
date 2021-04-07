@@ -1,0 +1,9 @@
+/data
+/node_modules
+/coverage.json
+/coverage
+/.env
+/data
+*.ignore.*
+yarn.lock
+/build
